@@ -1,0 +1,11 @@
+C:\Rust_course\ultimate_rust_crash_course\exercise\code\dragon_pool\target\debug\deps\ppv_lite86-b8791b12215990f7.rmeta: C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\lib.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\soft.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\types.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\mod.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\sse2.rs
+
+C:\Rust_course\ultimate_rust_crash_course\exercise\code\dragon_pool\target\debug\deps\libppv_lite86-b8791b12215990f7.rlib: C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\lib.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\soft.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\types.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\mod.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\sse2.rs
+
+C:\Rust_course\ultimate_rust_crash_course\exercise\code\dragon_pool\target\debug\deps\ppv_lite86-b8791b12215990f7.d: C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\lib.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\soft.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\types.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\mod.rs C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\sse2.rs
+
+C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\lib.rs:
+C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\soft.rs:
+C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\types.rs:
+C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\mod.rs:
+C:\Users\Andrew\.cargo\registry\src\github.com-1ecc6299db9ec823\ppv-lite86-0.2.9\src\x86_64\sse2.rs:
