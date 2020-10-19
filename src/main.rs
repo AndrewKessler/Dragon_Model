@@ -6,7 +6,10 @@ const REWARD: f64 = 400.0;
 const MAX_PROFIT_REDUCTION: f64 = 0.85;
 const CAPITAL_REDUCTION: f64 = 0.7;
 //to prevent f64 errors on u64 operations we divide
+// setting OPEX_COST to 0.001 really shows off capital optimisation derivative func
 const OPEX_COST: f64 = 0.01;
+//what percent of the inital rate of profit sets optimum capital investment
+const OPT_PERCENT: f64 = 0.25;
 //const BLOCKS_PER_WEEK: u64 = 20160;
 //const COST_PER_ASIC: u64 = 3000;
 
@@ -41,8 +44,19 @@ fn opt_cap(best_rig_number: f64, current_network_size: u64) -> f64 {
     let new_profit: f64 = optimal_reward - optimal_cost;
     new_profit
 }
+fn profit (number_of_rigs: u64, current_network_size: u64) -> f64 {
+    let percent_network: f64 = calc_percent_network(number_of_rigs, current_network_size);
+    let reward: f64 = percent_network * REWARD;
+    let cost: f64 = number_of_rigs as f64 * OPEX_COST;
+    let profit: f64 = reward - cost;
+    profit
+}
 
-fn get_best_rig_number(current_network_size: u64, trial_dragon: Dragon, mining_rigs_on_hand: u64) -> (f64, f64) {
+fn get_best_rig_number(
+    current_network_size: u64,
+    trial_dragon: Dragon,
+    mining_rigs_on_hand: u64,
+) -> (f64, f64) {
     //99% of the network is achieved with a hundred fold investment. No rational dragon will invest more
     //in weeks where a reasonable invester expects to offset capital cost of mining within 1 to 5 years
     //let break_even_period = 52*random_num(1,6);
@@ -86,54 +100,45 @@ fn get_best_rig_number(current_network_size: u64, trial_dragon: Dragon, mining_r
 fn spawn_dragon(current_network_size: u64, dragon_pool: &mut Vec<Dragon>) {
     let mining_rigs_on_hand: u64 = 100 * random_num(1, current_network_size);
     let mut trial_dragon = Dragon::new(false, mining_rigs_on_hand, 0, 0.0);
+    let (best_percent, best_rig_number) =
+        get_best_rig_number(current_network_size, trial_dragon, mining_rigs_on_hand);
+    let mut opt_rig_number: u64 = 0;
 
-    let (best_percent, best_rig_number) = get_best_rig_number(current_network_size, trial_dragon, mining_rigs_on_hand);
-    /*
-    //niavely optimise capital investment
-    let mut done = false;
-
-    while !done {
-    let opt = opt_cap(best_rig_number, current_network_size);
-    let switch: f64 = opt/profit_on_rigs_n0;
-    println!("switch: {}", switch);
-
-        if switch > MAX_PROFIT_REDUCTION {
-            best_rig_number=best_rig_number*CAPITAL_REDUCTION;
-            best_percent = calc_percent_network(best_rig_number as u64, current_network_size);
-        } else {
-            done = true;
-        }
-    }
-    */
+    //optimise capital investment on derivative
     let mut i_profit: f64 = 0.0;
-    let mut k_percent_network: f64 = calc_percent_network(2, current_network_size);
-    let mut k_reward: f64 = k_percent_network * REWARD;
-    let mut k_cost: f64 = 2 as f64 * OPEX_COST;
-    let mut k_profit: f64 = k_reward - k_cost;
+    let i_percent_network: f64 = calc_percent_network(2, current_network_size);
+    let i_reward: f64 = i_percent_network * REWARD;
+    let i_cost: f64 = 2.0 * OPEX_COST;
+    let j_profit: f64 = i_reward - i_cost;
+    let first_derivative: f64 = (j_profit - i_profit) / 2.0;
+    println!("first derivative: {}", first_derivative);
+    //use the best rate of change to autobenchmark
 
+    //TODO custom dragon rate selection
+    let cap_optimum: f64 = first_derivative*OPT_PERCENT;
+
+    println!("optimal derivative: {}", cap_optimum);
     //calc first derivative
     for i in (2..best_rig_number as u64).step_by(2) {
         let i_percent_network: f64 = calc_percent_network(i, current_network_size);
         let i_reward: f64 = i_percent_network * REWARD;
         let i_cost: f64 = i as f64 * OPEX_COST;
         let j_profit: f64 = i_reward - i_cost;
-        let first_derivative_a: f64 = (j_profit - i_profit) / 2.0;
-        //println!("profit: {} derivative: {}", i_profit, first_derivative_a);
+        let first_derivative: f64 = (j_profit - i_profit) / 2.0;
+        //println!("derivative: {}", first_derivative);
         i_profit = j_profit;
+        //check for capital cap_optimum
+        if cap_optimum > first_derivative {
+            opt_rig_number = i;
+            break;
+        }
 
-        k_percent_network = calc_percent_network(i + 2, current_network_size);
-        k_reward = k_percent_network * REWARD;
-        k_cost = (i + 2) as f64 * OPEX_COST;
-        let l_profit = k_reward - k_cost;
-        let first_derivative_b: f64 = (l_profit - k_profit) / 2.0;
         //println!("profit k: {} sec derivative: {}", i_profit, first_derivative_b);
-        k_profit = l_profit;
-        //calc second first_derivative
-        let second_derivative = first_derivative_b - first_derivative_a;
-        println!("second_derivative {}", second_derivative);
-    }
+    } //end for loop
 
-    println!("optimal rig number {}", best_rig_number);
+    println!("optimal rig number {}", opt_rig_number);
+    let o_profit = profit(opt_rig_number, current_network_size);
+    println!("optimal profit {}", o_profit);
     println!("");
     //add to dragon pool if reasonable
     if best_rig_number > 0.0 {
