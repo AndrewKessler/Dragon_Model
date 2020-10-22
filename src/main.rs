@@ -1,17 +1,6 @@
 use rand::Rng;
-
-//initialising values
-// USD based prices per block per rig
-const REWARD: f64 = 400.0;
-const MAX_PROFIT_REDUCTION: f64 = 0.85;
-const CAPITAL_REDUCTION: f64 = 0.7;
-//to prevent f64 errors on u64 operations we divide
-// setting OPEX_COST to 0.001 really shows off capital optimisation derivative func
-const OPEX_COST: f64 = 0.01;
-//what percent of the inital rate of profit sets optimum capital investment
-const OPT_PERCENT: f64 = 0.25;
-//const BLOCKS_PER_WEEK: u64 = 20160;
-//const COST_PER_ASIC: u64 = 3000;
+pub mod utils;
+use utils::*;
 
 //initialising functions
 fn random_num(min: u64, max: u64) -> u64 {
@@ -28,29 +17,6 @@ fn probability (min: f64, max: f64) -> f64 {
     } else {probability (min, max)}
 }
 */
-
-fn calc_percent_network(dragon_rigs_deployed: u64, network_size: u64) -> f64 {
-    let n = dragon_rigs_deployed as f64 / network_size as f64;
-    n / (n + 1.0)
-}
-
-fn opt_cap(best_rig_number: f64, current_network_size: u64) -> f64 {
-    let optimal_rig_number: f64 = best_rig_number * CAPITAL_REDUCTION;
-    let optimal_percent_network: f64 =
-        calc_percent_network(optimal_rig_number as u64, current_network_size);
-    let optimal_reward: f64 = optimal_percent_network * REWARD;
-
-    let optimal_cost: f64 = optimal_rig_number * OPEX_COST;
-    let new_profit: f64 = optimal_reward - optimal_cost;
-    new_profit
-}
-fn profit (number_of_rigs: u64, current_network_size: u64) -> f64 {
-    let percent_network: f64 = calc_percent_network(number_of_rigs, current_network_size);
-    let reward: f64 = percent_network * REWARD;
-    let cost: f64 = number_of_rigs as f64 * OPEX_COST;
-    let profit: f64 = reward - cost;
-    profit
-}
 
 fn get_best_rig_number(
     current_network_size: u64,
@@ -104,49 +70,19 @@ fn spawn_dragon(current_network_size: u64, dragon_pool: &mut Vec<Dragon>) {
         get_best_rig_number(current_network_size, trial_dragon, mining_rigs_on_hand);
     let mut opt_rig_number: u64 = 0;
 
-    //optimise capital investment on derivative
-    let mut i_profit: f64 = 0.0;
-    let i_percent_network: f64 = calc_percent_network(2, current_network_size);
-    let i_reward: f64 = i_percent_network * REWARD;
-    let i_cost: f64 = 2.0 * OPEX_COST;
-    let j_profit: f64 = i_reward - i_cost;
-    let first_derivative: f64 = (j_profit - i_profit) / 2.0;
-    println!("first derivative: {}", first_derivative);
-    //use the best rate of change to autobenchmark
+    let cap_opt_rig_number =
+        optimise_capital(current_network_size, best_rig_number, opt_rig_number);
 
-    //TODO custom dragon rate selection
-    let cap_optimum: f64 = first_derivative*OPT_PERCENT;
-
-    println!("optimal derivative: {}", cap_optimum);
-    //calc first derivative
-    for i in (2..best_rig_number as u64).step_by(2) {
-        let i_percent_network: f64 = calc_percent_network(i, current_network_size);
-        let i_reward: f64 = i_percent_network * REWARD;
-        let i_cost: f64 = i as f64 * OPEX_COST;
-        let j_profit: f64 = i_reward - i_cost;
-        let first_derivative: f64 = (j_profit - i_profit) / 2.0;
-        //println!("derivative: {}", first_derivative);
-        i_profit = j_profit;
-        //check for capital cap_optimum
-        if cap_optimum > first_derivative {
-            opt_rig_number = i;
-            break;
-        }
-
-        //println!("profit k: {} sec derivative: {}", i_profit, first_derivative_b);
-    } //end for loop
-
-    println!("optimal rig number {}", opt_rig_number);
-    let o_profit = profit(opt_rig_number, current_network_size);
-    println!("optimal profit {}", o_profit);
+    println!("optimal cap rig number {}", cap_opt_rig_number);
     println!("");
+
     //add to dragon pool if reasonable
     if best_rig_number > 0.0 {
         let commit_dragon = Dragon::new(
             true,
             trial_dragon.total_mining_rigs,
-            best_rig_number as u64,
-            best_percent,
+            cap_opt_rig_number as u64,
+            0.0,
         );
         dragon_pool.push(commit_dragon);
     }
@@ -160,8 +96,7 @@ struct Dragon {
     participant: bool,
     total_mining_rigs: u64,
     deployed_mining_rigs: u64,
-    percent_current_network: f64,
-    //min_profit: f64,
+    capital_repayment_period: f64,
 }
 
 impl Dragon {
@@ -169,57 +104,37 @@ impl Dragon {
         participant: bool,
         total_mining_rigs: u64,
         deployed_mining_rigs: u64,
-        percent_current_network: f64,
+        capital_repayment_period: f64,
     ) -> Dragon {
         Dragon {
             participant,
             total_mining_rigs,
             deployed_mining_rigs,
-            percent_current_network,
+            capital_repayment_period,
         }
     }
-    /*
-        fn update_percent_network (&mut self, network_size: u64) {
-            let n = self.deployed_mining_rigs as f64/network_size as f64;
-            self.percent_current_network = n/(n+1.0);
-        }
-    */
 }
 
-//initialising network types, methods and functions
-#[derive(Debug, Clone)]
-struct Graph {
-    all_mining_rigs: u64,
-    number_of_dragons: u64,
-}
-
-impl Graph {
-    fn new(all_mining_rigs: u64, number_of_dragons: u64) -> Graph {
-        Graph {
-            all_mining_rigs,
-            number_of_dragons,
-        }
+fn count_all_rigs(dragon_pool: &Vec<Dragon>, mut total_rigs: u64) -> u64 {
+    total_rigs = 0;
+    for dragon in dragon_pool {
+        total_rigs += dragon.deployed_mining_rigs;
     }
-
-    fn update_amr(&mut self, new_dragon_rig: u64) {
-        self.all_mining_rigs += new_dragon_rig;
-    }
+    total_rigs
 }
 
 fn main() {
     //initialise dragon pool
-
-    //
-
     let mut dragon_pool = Vec::new();
+    let mut total_rigs = 0;
 
-    //initial network conditions
-    let mut network = Graph::new(10000, 1);
-
+    //initial network of individual miners collectively represent the first dragon
+    let mut network = Dragon::new(true, 10000, 10000, 0.0);
+    dragon_pool.push(network);
+    total_rigs = count_all_rigs(&dragon_pool, total_rigs);
     //instantiate dragon
-    spawn_dragon(network.all_mining_rigs, &mut dragon_pool);
-    network.update_amr(dragon_pool[0].deployed_mining_rigs);
-    println!("new network size {:?}", network.all_mining_rigs);
+    spawn_dragon(total_rigs, &mut dragon_pool);
+    println!("total network size after count: {}", total_rigs);
     //TODO after first dragon spawn each new dragon must force older dragons to re-evalute decision making
 
     //add dragon to dragon pool
@@ -230,5 +145,6 @@ fn main() {
         dragon_pool[0].deployed_mining_rigs
     );
 
-    println!("");
+    total_rigs = count_all_rigs(&dragon_pool, total_rigs);
+    println!("total network size after count: {}", total_rigs);
 }
