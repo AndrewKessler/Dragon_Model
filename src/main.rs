@@ -62,21 +62,12 @@ fn get_best_rig_number(
     (best_percent, best_rig_number)
 }
 
-//create a potential dragon thinking about joining
-fn spawn_dragon(current_network_size: u64, dragon_pool: &mut Vec<Dragon>) {
-    let mining_rigs_on_hand: u64 = 100 * random_num(1, current_network_size);
-    let mut trial_dragon = Dragon::new(false, mining_rigs_on_hand, 0, 0.0);
-    let (best_percent, best_rig_number) =
-        get_best_rig_number(current_network_size, trial_dragon, mining_rigs_on_hand);
-    let mut opt_rig_number: u64 = 0;
-
-    let cap_opt_rig_number =
-        optimise_capital(current_network_size, best_rig_number, opt_rig_number);
-
-    println!("optimal cap rig number {}", cap_opt_rig_number);
-    println!("");
-
-    //add to dragon pool if reasonable
+fn commit(
+    best_rig_number: f64,
+    trial_dragon: Dragon,
+    cap_opt_rig_number: u64,
+    dragon_pool: &mut Vec<Dragon>,
+) {
     if best_rig_number > 0.0 {
         let commit_dragon = Dragon::new(
             true,
@@ -86,8 +77,29 @@ fn spawn_dragon(current_network_size: u64, dragon_pool: &mut Vec<Dragon>) {
         );
         dragon_pool.push(commit_dragon);
     }
+}
 
+//create a potential dragon thinking about joining
+fn spawn_dragon(current_network_size: u64, dragon_pool: &mut Vec<Dragon>) {
+    let mining_rigs_on_hand: u64 = 100 * random_num(1, current_network_size);
+    let mut trial_dragon = Dragon::new(false, mining_rigs_on_hand, 0, 0.0);
+    let (best_percent, best_rig_number) =
+        get_best_rig_number(current_network_size, trial_dragon, mining_rigs_on_hand);
+    let mut opt_rig_number: u64 = 0;
+
+    let cap_opt_rig_number =
+        optimise_capital(current_network_size, &best_rig_number, opt_rig_number);
+
+    println!("optimal cap rig number {}", cap_opt_rig_number);
+    println!("");
     println!("trial dragon stats {:?}", trial_dragon);
+
+    commit(
+        best_rig_number,
+        trial_dragon,
+        cap_opt_rig_number,
+        dragon_pool,
+    );
 }
 
 //initialising dragon types, methods and functions
@@ -131,9 +143,11 @@ fn main() {
     //initial network of individual miners collectively represent the first dragon
     let mut network = Dragon::new(true, 10000, 10000, 0.0);
     dragon_pool.push(network);
+
     total_rigs = count_all_rigs(&dragon_pool, total_rigs);
     //instantiate dragon
     spawn_dragon(total_rigs, &mut dragon_pool);
+
     println!("total network size after count: {}", total_rigs);
     //TODO after first dragon spawn each new dragon must force older dragons to re-evalute decision making
 

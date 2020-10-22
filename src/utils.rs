@@ -24,7 +24,7 @@ pub fn profit(number_of_rigs: u64, current_network_size: u64) -> f64 {
 
 pub fn optimise_capital(
     current_network_size: u64,
-    best_rig_number: f64,
+    best_rig_number: &f64,
     mut opt_rig_number: u64,
 ) -> u64 {
     //optimise capital investment on derivative
@@ -42,7 +42,9 @@ pub fn optimise_capital(
 
     println!("optimal derivative: {}", cap_optimum);
     //calc first derivative
-    for i in (2..best_rig_number as u64).step_by(2) {
+
+
+    for i in (2..best_rig_number.round() as u64).step_by(2) {
         let i_percent_network: f64 = calc_percent_network(i, current_network_size);
         let i_reward: f64 = i_percent_network * REWARD;
         let i_cost: f64 = i as f64 * OPEX_COST;
