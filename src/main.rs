@@ -73,16 +73,24 @@ fn commit(
             true,
             trial_dragon.total_mining_rigs,
             cap_opt_rig_number as u64,
-            0.0,
+            0,
         );
         dragon_pool.push(commit_dragon);
+    } else {
+        let commit_dragon = Dragon::new(
+            false,
+            trial_dragon.total_mining_rigs,
+            0,
+            0,
+        );
     }
 }
 
 //create a potential dragon thinking about joining
 fn spawn_dragon(current_network_size: u64, dragon_pool: &mut Vec<Dragon>) {
     let mining_rigs_on_hand: u64 = 100 * random_num(1, current_network_size);
-    let mut trial_dragon = Dragon::new(false, mining_rigs_on_hand, 0, 0.0);
+    let repayment_period: u64 = random_num(9, 24);
+    let mut trial_dragon = Dragon::new(false, mining_rigs_on_hand, 0, repayment_period);
     let (best_percent, best_rig_number) =
         get_best_rig_number(current_network_size, trial_dragon, mining_rigs_on_hand);
     let mut opt_rig_number: u64 = 0;
@@ -108,7 +116,7 @@ struct Dragon {
     participant: bool,
     total_mining_rigs: u64,
     deployed_mining_rigs: u64,
-    capital_repayment_period: f64,
+    capital_repayment_period: u64,
 }
 
 impl Dragon {
@@ -116,7 +124,7 @@ impl Dragon {
         participant: bool,
         total_mining_rigs: u64,
         deployed_mining_rigs: u64,
-        capital_repayment_period: f64,
+        capital_repayment_period: u64,
     ) -> Dragon {
         Dragon {
             participant,
@@ -141,7 +149,7 @@ fn main() {
     let mut total_rigs = 0;
 
     //initial network of individual miners collectively represent the first dragon
-    let mut network = Dragon::new(true, 10000, 10000, 0.0);
+    let mut network = Dragon::new(true, 10000, 10000, 0);
     dragon_pool.push(network);
 
     total_rigs = count_all_rigs(&dragon_pool, total_rigs);
