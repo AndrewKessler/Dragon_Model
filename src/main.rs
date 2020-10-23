@@ -68,6 +68,15 @@ fn commit(
     cap_opt_rig_number: u64,
     dragon_pool: &mut Vec<Dragon>,
 ) {
+    let mut total_rigs = 0;
+    total_rigs = count_all_rigs(&dragon_pool, total_rigs);
+    let p_net = calc_percent_network(cap_opt_rig_number, total_rigs);
+
+    println!("");
+    println!("Tot Rigs: {}", total_rigs);
+    println!("percent network: {}", p_net);
+    println!("");
+
     if best_rig_number > 0.0 {
         let commit_dragon = Dragon::new(
             true,
@@ -152,6 +161,8 @@ fn main() {
     let mut network = Dragon::new(true, 10000, 10000, 0);
     dragon_pool.push(network);
 
+    //I don't want to loose total_rigs by passing it to some fn.
+    //I want to actually calc "break even" period using this number in fn commit()
     total_rigs = count_all_rigs(&dragon_pool, total_rigs);
     //instantiate dragon
     spawn_dragon(total_rigs, &mut dragon_pool);
