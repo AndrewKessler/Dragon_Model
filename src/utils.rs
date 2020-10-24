@@ -6,8 +6,8 @@ pub const REWARD: f64 = 400.0;
 pub const OPEX_COST: f64 = 0.0005;
 //what percent of the inital rate of profit sets optimum capital investment
 pub const OPT_PERCENT: f64 = 0.25;
-//const BLOCKS_PER_WEEK: u64 = 20160;
-//const COST_PER_ASIC: u64 = 3000;
+pub const BLOCKS_PER_WEEK: u64 = 20160;
+pub const COST_PER_ASIC: u64 = 750;
 
 pub fn calc_percent_network(dragon_rigs_deployed: u64, network_size: u64) -> f64 {
     let n = dragon_rigs_deployed as f64 / network_size as f64;

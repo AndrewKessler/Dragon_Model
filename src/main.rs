@@ -68,16 +68,21 @@ fn commit(
     cap_opt_rig_number: u64,
     dragon_pool: &mut Vec<Dragon>,
 ) {
+    //decision tree. look for cap repayment. elses op repayment closest to cap point. else eject
     let mut total_rigs = 0;
     total_rigs = count_all_rigs(&dragon_pool, total_rigs);
-    let p_net = calc_percent_network(cap_opt_rig_number, total_rigs);
+    let prof = profit(cap_opt_rig_number, total_rigs);
+    let c: i64 = COST_PER_ASIC as i64*cap_opt_rig_number as i64;
+    let p: i64 = prof as i64*BLOCKS_PER_WEEK as i64*trial_dragon.capital_repayment_period as i64;
+    let break_even: i64 = c - p;
 
     println!("");
     println!("Tot Rigs: {}", total_rigs);
-    println!("percent network: {}", p_net);
+    println!("profit: {}", prof);
+        println!("break_even: {}", break_even);
     println!("");
 
-    if best_rig_number > 0.0 {
+    if break_even < 0 {
         let commit_dragon = Dragon::new(
             true,
             trial_dragon.total_mining_rigs,
