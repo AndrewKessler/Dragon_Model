@@ -1,3 +1,6 @@
+//it occurs to me only now that cap_optimum negates the need for "best rig number"
+//also we should be iterating over break even and optimising on that... for version 2
+
 //initialising values
 // USD based prices per block per rig
 pub const REWARD: f64 = 400.0;
@@ -14,6 +17,8 @@ pub fn calc_percent_network(dragon_rigs_deployed: u64, network_size: u64) -> f64
     n / (n + 1.0)
 }
 
+//This profit function assumes that the rigs being added are new.
+//Given that dragon (if they join) will ADD rigs profit is as below
 pub fn profit(number_of_rigs: u64, current_network_size: u64) -> f64 {
     let percent_network: f64 = calc_percent_network(number_of_rigs, current_network_size);
     let reward: f64 = percent_network * REWARD;
@@ -21,6 +26,8 @@ pub fn profit(number_of_rigs: u64, current_network_size: u64) -> f64 {
     let profit: f64 = reward - cost;
     profit
 }
+
+
 
 pub fn optimise_capital(
     current_network_size: u64,
@@ -38,7 +45,8 @@ pub fn optimise_capital(
     //use the best rate of change to autobenchmark
 
     //TODO custom dragon rate selection
-    let cap_optimum: f64 = first_derivative * OPT_PERCENT;
+//    let cap_optimum: f64 = first_derivative * OPT_PERCENT;
+    let cap_optimum: f64 = 0.0015;
 
     println!("optimal derivative: {}", cap_optimum);
     //calc first derivative

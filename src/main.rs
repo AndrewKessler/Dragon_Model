@@ -72,14 +72,15 @@ fn commit(
     let mut total_rigs = 0;
     total_rigs = count_all_rigs(&dragon_pool, total_rigs);
     let prof = profit(cap_opt_rig_number, total_rigs);
-    let c: i64 = COST_PER_ASIC as i64*cap_opt_rig_number as i64;
-    let p: i64 = prof as i64*BLOCKS_PER_WEEK as i64*trial_dragon.capital_repayment_period as i64;
+    let c: i64 = COST_PER_ASIC as i64 * cap_opt_rig_number as i64;
+    let p: i64 =
+        prof as i64 * BLOCKS_PER_WEEK as i64 * trial_dragon.capital_repayment_period as i64;
     let break_even: i64 = c - p;
 
     println!("");
     println!("Tot Rigs: {}", total_rigs);
     println!("profit: {}", prof);
-        println!("break_even: {}", break_even);
+    println!("break_even: {}", break_even);
     println!("");
 
     if break_even < 0 {
@@ -91,12 +92,7 @@ fn commit(
         );
         dragon_pool.push(commit_dragon);
     } else {
-        let commit_dragon = Dragon::new(
-            false,
-            trial_dragon.total_mining_rigs,
-            0,
-            0,
-        );
+        let commit_dragon = Dragon::new(false, trial_dragon.total_mining_rigs, 0, 0);
     }
 }
 
@@ -157,6 +153,26 @@ fn count_all_rigs(dragon_pool: &Vec<Dragon>, mut total_rigs: u64) -> u64 {
     total_rigs
 }
 
+//Here a dragon is recalculating profit based on the changing network network size.
+//His rigs are already factored into the total number, he just has to check the latest network size.
+fn update_profit(number_of_rigs: u64, dragon_pool: &Vec<Dragon>) -> f64 {
+    let mut total_rigs = 0;
+    //TODO does count_all_rigs need the second arg?
+    total_rigs = count_all_rigs(&dragon_pool, total_rigs);
+    let percent_network: f64 = number_of_rigs as f64 / total_rigs as f64;
+    let reward: f64 = percent_network * REWARD;
+    let cost: f64 = number_of_rigs as f64 * OPEX_COST;
+    let profit: f64 = reward - cost;
+    profit
+}
+
+fn round_update(dragon_pool: &Vec<Dragon>) {
+    for dragon in dragon_pool {
+        let current_profit = update_profit(dragon.deployed_mining_rigs, &dragon_pool);
+        println!("Dragon from pool: {}", current_profit);
+    }
+}
+
 fn main() {
     //initialise dragon pool
     let mut dragon_pool = Vec::new();
@@ -172,8 +188,16 @@ fn main() {
     //instantiate dragon
     spawn_dragon(total_rigs, &mut dragon_pool);
 
+    //after first dragon each successive dragon could create unbalancing of prev dragons
+    // equilibrium must be found before moving on
+    total_rigs = count_all_rigs(&dragon_pool, total_rigs);
+    //instantiate dragon
+    spawn_dragon(total_rigs, &mut dragon_pool);
+
     println!("total network size after count: {}", total_rigs);
     //TODO after first dragon spawn each new dragon must force older dragons to re-evalute decision making
+    println!("");
+    round_update(&dragon_pool);
 
     //add dragon to dragon pool
     println!("number of dragons: {}", dragon_pool.len());
