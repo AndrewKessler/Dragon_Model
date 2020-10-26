@@ -84,15 +84,21 @@ fn commit(
     println!("");
 
     if break_even < 0 {
+        //println!("saving dragon as: {}", trial_dragon.capital_repayment_period);
         let commit_dragon = Dragon::new(
             true,
             trial_dragon.total_mining_rigs,
             cap_opt_rig_number as u64,
-            0,
+            trial_dragon.capital_repayment_period,
         );
         dragon_pool.push(commit_dragon);
     } else {
-        let commit_dragon = Dragon::new(false, trial_dragon.total_mining_rigs, 0, 0);
+        let commit_dragon = Dragon::new(
+            false,
+            trial_dragon.total_mining_rigs,
+            0,
+            trial_dragon.capital_repayment_period,
+        );
     }
 }
 
@@ -201,7 +207,7 @@ fn main() {
 
     //add dragon to dragon pool
     println!("number of dragons: {}", dragon_pool.len());
-    println!("Some dragon pool values {:?}", dragon_pool[0]);
+    println!("Some dragon pool values {:?}", dragon_pool[1]);
     println!(
         "deployed_mining_rigs {:?}",
         dragon_pool[0].deployed_mining_rigs
