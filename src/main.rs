@@ -16,9 +16,9 @@ fn commit(trial_dragon: Dragon, cap_opt_rig_number: u64, dragon_pool: &mut Vec<D
     let c: i64 = COST_PER_ASIC as i64 * cap_opt_rig_number as i64;
     let p: i64 =
         prof as i64 * BLOCKS_PER_WEEK as i64 * trial_dragon.capital_repayment_period as i64;
-    let break_even: i64 = c - p;
+    let break_even: i64 = p - c;
 
-    if break_even <= 0 {
+    if break_even >= 0 {
         //println!("saving dragon as: {}", trial_dragon.capital_repayment_period);
         let commit_dragon = Dragon::new(
             true,
@@ -27,8 +27,7 @@ fn commit(trial_dragon: Dragon, cap_opt_rig_number: u64, dragon_pool: &mut Vec<D
             trial_dragon.capital_repayment_period,
         );
         dragon_pool.push(commit_dragon);
-
-    } else if break_even > 0 {
+    } else if break_even < 0 {
         let commit_dragon = Dragon::new(
             false,
             trial_dragon.total_mining_rigs,
@@ -37,7 +36,6 @@ fn commit(trial_dragon: Dragon, cap_opt_rig_number: u64, dragon_pool: &mut Vec<D
         );
         dragon_pool.push(commit_dragon);
     }
-
 }
 
 //create a potential dragon thinking about joining
@@ -47,8 +45,18 @@ fn spawn_dragon(current_network_size: u64, dragon_pool: &mut Vec<Dragon>) {
     let mut trial_dragon = Dragon::new(false, mining_rigs_on_hand, 0, repayment_period);
 
     let cap_opt_rig_number = optimise_capital(current_network_size, &(mining_rigs_on_hand as f64));
-
+    let mut total_rigs = 0;
+    total_rigs = count_all_rigs(&dragon_pool, total_rigs);
+    let prof = profit(cap_opt_rig_number, total_rigs);
+    let c: i64 = COST_PER_ASIC as i64 * cap_opt_rig_number as i64;
+    let p: i64 =
+        prof as i64 * BLOCKS_PER_WEEK as i64 * trial_dragon.capital_repayment_period as i64;
+    let break_even: i64 = p - c;
+    //println!("break_even: {}", break_even);
+    if break_even > 0 {
     commit(trial_dragon, cap_opt_rig_number, dragon_pool);
+    } //else if break_even <= 0 {
+//    }
 }
 
 //initialising dragon types, methods and functions
@@ -79,7 +87,9 @@ impl Dragon {
 fn count_all_rigs(dragon_pool: &Vec<Dragon>, mut total_rigs: u64) -> u64 {
     total_rigs = 0;
     for dragon in dragon_pool {
-        total_rigs += dragon.deployed_mining_rigs;
+        if dragon.participant == true {
+            total_rigs += dragon.deployed_mining_rigs;
+        }
     }
     total_rigs
 }
@@ -125,8 +135,8 @@ fn main() {
 
     //after first dragon each successive dragon could create unbalancing of prev dragons
     // equilibrium must be found before moving on
-    for i in 1..20 {
-        println!("loop NUMBER: {}", i);
+    for i in 1..200 {
+        //println!("loop NUMBER: {}", i);
         let mut dragon_sum = 0;
         let mut dragon_crash = 0;
         while !halt {
