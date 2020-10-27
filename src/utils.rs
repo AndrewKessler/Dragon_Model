@@ -27,13 +27,7 @@ pub fn profit(number_of_rigs: u64, current_network_size: u64) -> f64 {
     profit
 }
 
-
-
-pub fn optimise_capital(
-    current_network_size: u64,
-    best_rig_number: &f64,
-    mut opt_rig_number: u64,
-) -> u64 {
+pub fn optimise_capital(current_network_size: u64, best_rig_number: &f64) -> u64 {
     //optimise capital investment on derivative
     let mut i_profit: f64 = 0.0;
     let i_percent_network: f64 = calc_percent_network(2, current_network_size);
@@ -41,16 +35,13 @@ pub fn optimise_capital(
     let i_cost: f64 = 2.0 * OPEX_COST;
     let j_profit: f64 = i_reward - i_cost;
     let first_derivative: f64 = (j_profit - i_profit) / 2.0;
-    println!("first derivative: {}", first_derivative);
     //use the best rate of change to autobenchmark
 
     //TODO custom dragon rate selection
-//    let cap_optimum: f64 = first_derivative * OPT_PERCENT;
     let cap_optimum: f64 = 0.0015;
 
-    println!("optimal derivative: {}", cap_optimum);
     //calc first derivative
-
+    let mut opt_rig_number = 0;
 
     for i in (2..best_rig_number.round() as u64).step_by(2) {
         let i_percent_network: f64 = calc_percent_network(i, current_network_size);
@@ -69,7 +60,7 @@ pub fn optimise_capital(
         //println!("profit k: {} sec derivative: {}", i_profit, first_derivative_b);
     } //end for loop
 
-    let o_profit = profit(opt_rig_number, current_network_size);
-    println!("optimal profit {}", o_profit);
+    //    let o_profit = profit(opt_rig_number, current_network_size);
+    //    println!("optimal profit {}", o_profit);
     opt_rig_number
 }
