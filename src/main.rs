@@ -1,3 +1,6 @@
+//two MASSIVE errors. deployed_mining_rigs should not behave deterministically (it won't after round update. not so bad)
+// round update must be "live" dragon by dragon. Old function is only round by round. count(immutable dragon_pool which is bad)
+
 use rand::Rng;
 pub mod utils;
 use utils::*;
@@ -105,18 +108,22 @@ fn count_all_rigs(dragon_pool: &Vec<Dragon>, mut total_rigs: u64) -> u64 {
 
 
 fn round_update(dragon_pool: &mut Vec<Dragon>) {
-    let mut dragon_clone = dragon_pool.clone();
-    let mut counter = 0;
+let mut counter = 0;
+let dragon_clone = dragon_pool.clone();
+let mut round_network_size = 0;
+
+    //get number of current miners at start
+    for dragon in dragon_clone {
+        if dragon.participant == true {
+            round_network_size += dragon.deployed_mining_rigs;
+        }
+    }
+    //update miner stats. Use clone
     for dragon in dragon_pool.iter_mut() {
-        let mut total_rigs = 0;
         counter += 1;
-            //TODO I got a negative number here once. How? only participant == true
-        total_rigs = count_all_rigs(&dragon_clone, total_rigs) - dragon.deployed_mining_rigs;
+        let cap_opt_rig_number = optimise_capital(round_network_size, &(dragon.total_mining_rigs as f64));
 
-//check weirdness
-        let cap_opt_rig_number = optimise_capital(total_rigs, &(dragon.total_mining_rigs as f64));
-
-        let current_profit = profit(cap_opt_rig_number, total_rigs);
+        let current_profit = profit(cap_opt_rig_number, round_network_size);
         let c: i64 = COST_PER_ASIC as i64 * cap_opt_rig_number as i64;
         let p: i64 =
         //cap repayment in weeeks
@@ -126,13 +133,17 @@ fn round_update(dragon_pool: &mut Vec<Dragon>) {
         if break_even > 0 {
             dragon.participant = true;
             //TODO update deployed rig number
+            round_network_size -= dragon.deployed_mining_rigs;
             dragon.deployed_mining_rigs = cap_opt_rig_number;
-        } else if break_even < 0 {
-
+            round_network_size += dragon.deployed_mining_rigs;
+        }
+        else if break_even < 0 {
             dragon.participant = false;
+            round_network_size -= dragon.deployed_mining_rigs;
             dragon.deployed_mining_rigs = 0;
         }
     }
+
 }
 
 fn main() {
