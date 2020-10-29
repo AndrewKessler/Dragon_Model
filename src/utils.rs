@@ -8,7 +8,6 @@ pub const REWARD: f64 = 400.0;
 // setting OPEX_COST to 0.001 really shows off capital optimisation derivative func
 pub const OPEX_COST: f64 = 0.0005;
 //what percent of the inital rate of profit sets optimum capital investment
-pub const OPT_PERCENT: f64 = 0.25;
 pub const BLOCKS_PER_WEEK: u64 = 20160;
 pub const COST_PER_ASIC: u64 = 750;
 
